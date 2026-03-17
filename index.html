@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>abhidharma.pl</title>
+  <script src="https://cdn.jsdelivr.net/npm/tau-prolog@0.3.4/modules/core.js"
+          integrity="sha384-iYvXTHykOWF9ryeJ4nvYpbnIEbl8xgjeNA3I68nSlHYsQPc/bnaXX4cfVxPpCwsa"
+          crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tau-prolog@0.3.4/modules/lists.js"
+          integrity="sha384-4PoGMBybP76LCYj72MDPc7Ikqamu0KHaNweC4X+Q5bijBCbrUFkmxS5dBM4/SPwb"
+          crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --fg: #1a1a1a;
+      --fg-muted: #6b6b6b;
+      --bg: #faf9f7;
+      --accent: #2d5a27;
+      --accent-light: #e8f0e6;
+      --border: #d4d0c8;
+      --absent: #8b4513;
+      --absent-light: #fdf0e6;
+      --code-bg: #f4f3f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 8rem;
+    }
+
+    .container {
+      max-width: 540px;
+      width: 100%;
+      margin-top: 8vh;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.4rem;
+    }
+
+    .subtitle {
+      color: var(--fg-muted);
+      font-size: 0.95rem;
+      font-style: italic;
+      margin-bottom: 2.5rem;
+    }
+
+    #status {
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      letter-spacing: 0.02em;
+    }
+
+    #status.ready { color: var(--accent); }
+    #status.error { color: var(--absent); }
+
+    /* --- Module browser (step 2) --- */
+
+    #modules {
+      margin-top: 2rem;
+    }
+
+    /* --- REPL (step 3) --- */
+
+    footer {
+      margin-top: auto;
+      padding-top: 4rem;
+      font-size: 0.8rem;
+      color: var(--fg-muted);
+    }
+
+    .fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>abhidharma.pl</h1>
+    <p class="subtitle">An interactive Prolog model of Buddhist epistemology</p>
+    <p id="status">Loading knowledge base...</p>
+    <div id="modules"></div>
+  </div>
+
+  <footer>&copy; 2026 Ben Askins</footer>
+
+  <!-- Adapted from lamina/facts/dharma.pl for Tau Prolog compatibility:
+       - Removed :- discontiguous directives (unsupported)
+       - Converted SWI-Prolog backslash-escaped quotes to ISO doubled quotes -->
+  <script type="text/prolog" id="dharma">
+%% =============================================================
+%% dharma.pl
+%% A conventional-level Prolog model of Buddhist epistemology
+%% and philosophy of mind, per the Gelugpa synthesis:
+%%   Dharmakirti's logic and epistemology
+%%   Abhidharma classification of phenomena
+%%   Prasangika-Madhyamaka ontological framework
+%%
+%% All terms modelled in English, Sanskrit, and Tibetan
+%% (Wylie transliteration).
+%% =============================================================
+
+%% =============================================================
+%% MODULE 1: MULTILINGUAL TERMINOLOGY
+%% =============================================================
+
+%% term(English, Sanskrit, Tibetan)
+%% Core ontological terms
+term(emptiness,              sunyata,          stong_pa_nyid).
+term(dependent_origination,  pratityasamutpada, 'rten_cing_''brel_bar_''byung_ba').
+term(inherent_existence,     svabhava,         rang_bzhin).
+term(conventional_truth,     samvriti_satya,   kun_rdzob_bden_pa).
+term(ultimate_truth,         paramartha_satya, don_dam_bden_pa).
+term(phenomenon,             dharma,           chos).
+term(person,                 pudgala,          gang_zag).
+term(imputation,             prajnapti,        btags_pa).
+
+%% Epistemological terms
+term(valid_cognition,        pramana,          tshad_ma).
+term(direct_perception,      pratyaksa,        mngon_sum).
+term(inference,              anumana,          rjes_dpag).
+term(reason,                 hetu,             gtan_tshigs).
+term(particular,             svalaksana,       rang_mtshan).
+term(universal,              samanyalaksana,   spyi_mtshan).
+term(exclusion,              apoha,            sel_ba).
+
+%% Mind terms
+term(mind,                   citta,            sems).
+term(mental_factor,          caitta,           sems_byung).
+term(feeling,                vedana,           tshor_ba).
+term(discrimination,         samjna,           '''du_shes').
+term(intention,              cetana,           sems_pa).
+term(contact,                sparsa,           reg_pa).
+term(attention,              manaskara,        yid_la_byed_pa).
+term(consciousness,          vijnana,          rnam_shes).
+
+%% Aggregate terms
+term(aggregate,              skandha,          phung_po).
+term(form,                   rupa,             gzugs).
+term(compositional_factors,  samskara,         '''du_byed').
+
+%% Affliction terms
+term(attachment,             raga,             '''dod_chags').
+term(anger,                  dvesa,            zhe_sdang).
+term(ignorance,              avidya,           ma_rig_pa).
+term(pride,                  mana,             nga_rgyal).
+term(afflictive_doubt,       vicikitsa,        the_tshom).
+term(wrong_view,             mithya_drsti,     log_lta).
+
+%% Method terms
+term(reductio,               prasanga,         'thal_''byung').
+term(autonomous_syllogism,   svatantra,        rang_rgyud).
+
+%% Lookup helpers
+english(E)  :- term(E, _, _).
+sanskrit(S) :- term(_, S, _).
+tibetan(T)  :- term(_, _, T).
+
+translate(English, sanskrit, Sanskrit) :- term(English, Sanskrit, _).
+translate(English, tibetan, Tibetan)   :- term(English, _, Tibetan).
+translate(English, english, English)   :- term(English, _, _).
+
+%% Reverse lookup
+from_sanskrit(Sanskrit, English) :- term(English, Sanskrit, _).
+from_tibetan(Tibetan, English)   :- term(English, _, Tibetan).
+
+
+%% =============================================================
+%% MODULE 2: LOGIC -- TRAIRUPYA
+%% Dharmakirti's three criteria for valid inference
+%% =============================================================
+
+%% subject(S) -- something we reason about
+%% property(S, P) -- S has property P
+
+%% A reason B validly establishes property A of subject S
+valid_reason(S, A, B) :-
+    paksadharmata(S, B),
+    anvaya(B, A),
+    vyatireka(A, B).
+
+%% 1. Paksadharmata: the reason is a property of the subject
+paksadharmata(S, B) :-
+    property(S, B).
+
+%% 2. Anvaya (positive concomitance / rjes khyab):
+%%    wherever B is present, A is present
+anvaya(B, A) :-
+    \+ (property(X, B), \+ property(X, A)).
+
+%% 3. Vyatireka (negative concomitance / ldog khyab):
+%%    wherever A is absent, B is absent
+vyatireka(A, B) :-
+    \+ (property(SomeX, B), \+ property(SomeX, A)).
+
+%% --- Fallacious reasons (hetvabhasa / gtan tshigs ltar snang) ---
+
+%% Asiddha (unestablished / ma grub pa):
+%%   the reason doesn't apply to the subject
+fallacy(S, _A, B, asiddha) :-
+    \+ paksadharmata(S, B).
+
+%% Viruddha (contradictory / agal ba):
+%%   the reason entails the opposite of what's claimed
+fallacy(S, A, B, viruddha) :-
+    paksadharmata(S, B),
+    anvaya(B, Opposite),
+    contradicts(A, Opposite).
+
+%% Anaikantika (inconclusive / ma nges pa):
+%%   the reason applies to the subject but concomitance fails
+fallacy(S, A, B, anaikantika) :-
+    paksadharmata(S, B),
+    \+ anvaya(B, A).
+
+%% Contradiction pairs -- extend as needed
+contradicts(permanent, impermanent).
+contradicts(impermanent, permanent).
+contradicts(produced, unproduced).
+contradicts(unproduced, produced).
+
+
+%% =============================================================
+%% MODULE 3: VALID COGNITION (PRAMANA)
+%% =============================================================
+
+%% Two and only two types of valid cognition
+pramana_type(direct_perception).
+pramana_type(inference).
+
+%% Properties of direct perception (pratyaksa / mngon sum)
+non_conceptual(direct_perception).
+non_erroneous(direct_perception).
+apprehends(direct_perception, particular).
+
+%% Properties of inference (anumana / rjes dpag)
+conceptual(inference).
+operates_through(inference, reason).
+apprehends(inference, universal).
+
+%% Subtypes of direct perception
+pratyaksa_subtype(sensory).
+pratyaksa_subtype(mental).
+pratyaksa_subtype(yogic).
+
+%% Non-pramana cognitions -- mental events that do not
+%% generate new valid knowledge
+non_pramana(doubt).
+non_pramana(wrong_cognition).
+non_pramana(subsequent_cognition).
+non_pramana(assumption).
+
+%% A cogniser has pramana only if sentient
+has_pramana(X, direct_perception) :-
+    sentient(X),
+    has_capacity(X, luminosity).
+
+has_pramana(X, inference) :-
+    sentient(X),
+    has_capacity(X, cognising).
+
+
+%% =============================================================
+%% MODULE 4: SENTIENCE AND CAPACITIES OF MIND
+%% =============================================================
+
+%% Capacities that constitute mind (citta / sems)
+capacity(luminosity).
+capacity(cognising).
+capacity(intentionality).
+capacity(momentariness).
+capacity(causal_continuity).
+
+%% The standard Gelugpa definition of mind is the dyad
+%% "mere clarity and awareness" (gsal rig tsam).
+sentient(X) :-
+    has_capacity(X, luminosity),
+    has_capacity(X, cognising),
+    has_capacity(X, intentionality).
+
+%% A mental stream additionally requires the last two
+has_mental_stream(X) :-
+    sentient(X),
+    has_capacity(X, momentariness),
+    has_capacity(X, causal_continuity).
+
+%% Known sentient beings
+has_capacity(human, luminosity).
+has_capacity(human, cognising).
+has_capacity(human, intentionality).
+has_capacity(human, momentariness).
+has_capacity(human, causal_continuity).
+
+has_capacity(animal, luminosity).
+has_capacity(animal, cognising).
+has_capacity(animal, intentionality).
+has_capacity(animal, momentariness).
+has_capacity(animal, causal_continuity).
+
+
+%% =============================================================
+%% MODULE 5: MENTAL FACTORS (CAITTA / SEMS BYUNG)
+%% =============================================================
+
+%% --- Five groups ---
+mental_factor_group(omnipresent).
+mental_factor_group(object_ascertaining).
+mental_factor_group(virtuous).
+mental_factor_group(root_affliction).
+mental_factor_group(secondary_affliction).
+mental_factor_group(changeable).
+
+%% --- Five omnipresent mental factors ---
+mental_factor(feeling,        omnipresent).
+mental_factor(discrimination, omnipresent).
+mental_factor(intention,      omnipresent).
+mental_factor(contact,        omnipresent).
+mental_factor(attention,      omnipresent).
+
+accompanies_all(F) :- mental_factor(F, omnipresent).
+
+%% --- Five object-ascertaining ---
+mental_factor(aspiration,     object_ascertaining).
+mental_factor(firm_conviction, object_ascertaining).
+mental_factor(recollection,   object_ascertaining).
+mental_factor(concentration,  object_ascertaining).
+mental_factor(intelligence,   object_ascertaining).
+
+%% --- Eleven virtuous ---
+mental_factor(faith,              virtuous).
+mental_factor(shame,              virtuous).
+mental_factor(embarrassment,      virtuous).
+mental_factor(non_attachment,     virtuous).
+mental_factor(non_hatred,         virtuous).
+mental_factor(non_ignorance,      virtuous).
+mental_factor(effort,             virtuous).
+mental_factor(pliancy,            virtuous).
+mental_factor(conscientiousness,  virtuous).
+mental_factor(equanimity,         virtuous).
+mental_factor(non_harmfulness,    virtuous).
+
+%% --- Six root afflictions ---
+mental_factor(attachment,      root_affliction).
+mental_factor(anger,           root_affliction).
+mental_factor(pride,           root_affliction).
+mental_factor(ignorance,       root_affliction).
+mental_factor(afflictive_doubt, root_affliction).
+mental_factor(wrong_view,      root_affliction).
+
+%% --- Twenty secondary afflictions ---
+mental_factor(belligerence,             secondary_affliction).
+mental_factor(resentment,               secondary_affliction).
+mental_factor(concealment,              secondary_affliction).
+mental_factor(spite,                    secondary_affliction).
+mental_factor(jealousy,                 secondary_affliction).
+mental_factor(miserliness,              secondary_affliction).
+mental_factor(deceit,                   secondary_affliction).
+mental_factor(dissimulation,            secondary_affliction).
+mental_factor(haughtiness,             secondary_affliction).
+mental_factor(harmfulness,              secondary_affliction).
+mental_factor(shamelessness,            secondary_affliction).
+mental_factor(lack_of_embarrassment,    secondary_affliction).
+mental_factor(lethargy,                 secondary_affliction).
+mental_factor(excitement,               secondary_affliction).
+mental_factor(lack_of_faith,            secondary_affliction).
+mental_factor(laziness,                 secondary_affliction).
+mental_factor(lack_of_conscientiousness, secondary_affliction).
+mental_factor(forgetfulness,            secondary_affliction).
+mental_factor(non_alertness,            secondary_affliction).
+mental_factor(distraction,              secondary_affliction).
+
+%% --- Four changeable ---
+mental_factor(sleep,          changeable).
+mental_factor(regret,         changeable).
+mental_factor(investigation,  changeable).
+mental_factor(analysis,       changeable).
+
+%% --- Co-occurrence rules ---
+
+%% A valid mind moment must include all omnipresent factors
+valid_mind_moment(Moment) :-
+    has_factor(Moment, feeling),
+    has_factor(Moment, discrimination),
+    has_factor(Moment, intention),
+    has_factor(Moment, contact),
+    has_factor(Moment, attention).
+
+%% Virtuous and afflictive factors cannot co-occur
+inconsistent(F1, F2) :-
+    mental_factor(F1, virtuous),
+    mental_factor(F2, root_affliction).
+inconsistent(F1, F2) :-
+    mental_factor(F1, virtuous),
+    mental_factor(F2, secondary_affliction).
+
+%% Specific antidote pairs
+direct_antidote(non_attachment, attachment).
+direct_antidote(non_hatred, anger).
+direct_antidote(non_ignorance, ignorance).
+direct_antidote(faith, lack_of_faith).
+direct_antidote(effort, laziness).
+direct_antidote(conscientiousness, lack_of_conscientiousness).
+direct_antidote(shame, shamelessness).
+direct_antidote(embarrassment, lack_of_embarrassment).
+direct_antidote(non_harmfulness, harmfulness).
+
+%% A moment cannot contain a factor and its antidote
+invalid_moment(Moment) :-
+    has_factor(Moment, F1),
+    has_factor(Moment, F2),
+    direct_antidote(F1, F2).
+invalid_moment(Moment) :-
+    has_factor(Moment, F1),
+    has_factor(Moment, F2),
+    direct_antidote(F2, F1).
+
+
+%% =============================================================
+%% MODULE 6: FIVE AGGREGATES (SKANDHA / PHUNG PO)
+%% =============================================================
+
+aggregate(form).
+aggregate(feeling).
+aggregate(discrimination).
+aggregate(compositional_factors).
+aggregate(consciousness).
+
+%% --- Form aggregate (rupa / gzugs) ---
+
+sense_faculty(eye).
+sense_faculty(ear).
+sense_faculty(nose).
+sense_faculty(tongue).
+sense_faculty(body).
+
+sense_object(visible_form).
+sense_object(sound).
+sense_object(odour).
+sense_object(taste).
+sense_object(tangible).
+
+member_of(X, form) :- sense_faculty(X).
+member_of(X, form) :- sense_object(X).
+
+faculty_object_pair(eye,    visible_form).
+faculty_object_pair(ear,    sound).
+faculty_object_pair(nose,   odour).
+faculty_object_pair(tongue, taste).
+faculty_object_pair(body,   tangible).
+
+%% --- Feeling aggregate (vedana / tshor ba) ---
+
+feeling_tone(pleasant).
+feeling_tone(unpleasant).
+feeling_tone(neutral).
+
+member_of(feeling, feeling).
+
+%% --- Discrimination aggregate (samjna / 'du shes) ---
+
+member_of(discrimination, discrimination).
+
+%% --- Compositional factors aggregate (samskara / 'du byed) ---
+
+member_of(F, compositional_factors) :-
+    mental_factor(F, _),
+    F \= feeling,
+    F \= discrimination.
+
+non_associated_factor(person).
+non_associated_factor(time).
+non_associated_factor(birth).
+non_associated_factor(aging).
+non_associated_factor(impermanence).
+non_associated_factor(collection).
+non_associated_factor(causality).
+non_associated_factor(acquisition).
+non_associated_factor(continuity).
+
+member_of(X, compositional_factors) :-
+    non_associated_factor(X).
+
+%% --- Consciousness aggregate (vijnana / rnam shes) ---
+
+consciousness_type(eye_consciousness).
+consciousness_type(ear_consciousness).
+consciousness_type(nose_consciousness).
+consciousness_type(tongue_consciousness).
+consciousness_type(body_consciousness).
+consciousness_type(mental_consciousness).
+
+member_of(X, consciousness) :- consciousness_type(X).
+
+%% Consciousness arises from the triad
+consciousness_arises(eye_consciousness,    eye,    visible_form).
+consciousness_arises(ear_consciousness,    ear,    sound).
+consciousness_arises(nose_consciousness,   nose,   odour).
+consciousness_arises(tongue_consciousness, tongue, taste).
+consciousness_arises(body_consciousness,   body,   tangible).
+
+%% Mental consciousness takes all objects
+consciousness_arises(mental_consciousness, mental_faculty, X) :-
+    sense_object(X).
+consciousness_arises(mental_consciousness, mental_faculty, X) :-
+    non_associated_factor(X).
+
+%% --- Contact: the meeting of the triad ---
+sense_contact(Faculty, Object, Consciousness) :-
+    faculty_object_pair(Faculty, Object),
+    consciousness_arises(Consciousness, Faculty, Object).
+
+%% Contact is the condition for feeling to arise
+feeling_arises(Tone, Faculty, Object) :-
+    sense_contact(Faculty, Object, _),
+    feeling_tone(Tone).
+
+
+%% =============================================================
+%% MODULE 7: THE PERSON AND DEPENDENT ORIGINATION
+%% =============================================================
+
+%% The person is imputed in dependence upon the aggregates
+imputed_upon(person, aggregates).
+
+%% The person is not identical to any aggregate
+not_identical_to(person, A) :- aggregate(A).
+
+%% The person is not separate from the aggregates
+not_separate_from(person, aggregates).
+
+%% Under ultimate analysis, the person is unfindable
+findable_under_analysis(person) :- fail.
+
+%% And yet, conventionally:
+conventionally_exists(person).
+performs_actions(person).
+experiences_results(person).
+
+%% --- Dependent origination: three modes ---
+depends_on(X, causes_and_conditions) :- conventionally_exists(X).
+depends_on(X, parts)                 :- conventionally_exists(X).
+depends_on(X, imputation)            :- conventionally_exists(X).
+
+%% --- Emptiness and dependent origination are coextensive ---
+empty(X) :- conventionally_exists(X).
+dependently_originated(X) :- conventionally_exists(X).
+
+
+%% =============================================================
+%% MODULE 8: PRASANGIKA METHOD
+%% =============================================================
+
+%% The Prasangika does not advance autonomous (svatantra) theses
+valid_method(reductio).
+invalid_method(autonomous_syllogism).
+
+%% A prasanga (reductio) works by showing that the
+%% opponent's thesis, combined with their own accepted
+%% premises, yields a contradiction.
+prasanga_refutes(Thesis) :-
+    opponent_accepts(Thesis),
+    opponent_accepts(Premise),
+    Premise \= Thesis,
+    entails(Thesis, Premise, Absurdity),
+    opponent_rejects(Absurdity).
+
+%% --- Standard Prasangika refutations ---
+entails(inherently_exists(X),
+        has_property(X, changing),
+        inherent_and_changing(X)).
+opponent_rejects(inherent_and_changing(_)).
+
+entails(inherently_exists(X),
+        depends_on(X, causes_and_conditions),
+        inherent_and_dependent(X)).
+opponent_rejects(inherent_and_dependent(_)).
+
+
+%% =============================================================
+%% MODULE 9: SENTIENT BEINGS AND THE FULL DIAGNOSTIC
+%% =============================================================
+
+%% A sentient being has all five aggregates
+has_all_aggregates(X) :-
+    has_aggregate(X, form),
+    has_aggregate(X, feeling),
+    has_aggregate(X, discrimination),
+    has_aggregate(X, compositional_factors),
+    has_aggregate(X, consciousness).
+
+%% Humans and animals
+has_aggregate(human, A)  :- aggregate(A).
+has_aggregate(animal, A) :- aggregate(A).
+
+%% The full diagnostic for sentient being status
+sentient_being(X) :-
+    has_all_aggregates(X),
+    sentient(X),
+    has_mental_stream(X).
+  </script>
+
+  <script>
+    var session = pl.create();
+    var statusEl = document.getElementById('status');
+
+    var program = document.getElementById('dharma').textContent;
+
+    session.consult(program, {
+      success: function () {
+        // Verify with a test query
+        session.query('sentient_being(human).', {
+          success: function () {
+            session.answer({
+              success: function (answer) {
+                statusEl.textContent = '9 modules loaded \u00b7 knowledge base ready';
+                statusEl.className = 'ready';
+                statusEl.classList.add('fade-in');
+              },
+              fail: function () {
+                statusEl.textContent = 'Knowledge base loaded but verification query failed';
+                statusEl.className = 'error';
+              },
+              error: function (err) {
+                statusEl.textContent = 'Query error: ' + err;
+                statusEl.className = 'error';
+              }
+            });
+          },
+          error: function (err) {
+            statusEl.textContent = 'Query error: ' + err;
+            statusEl.className = 'error';
+          }
+        });
+      },
+      error: function (err) {
+        statusEl.textContent = 'Failed to load: ' + err;
+        statusEl.className = 'error';
+      }
+    });
+  </script>
+</body>
+</html>
