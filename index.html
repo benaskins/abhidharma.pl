@@ -140,7 +140,88 @@
       color: var(--fg);
     }
 
-    /* --- REPL (step 3) --- */
+    /* --- REPL --- */
+
+    #repl {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-top: 1px solid var(--border);
+      padding: 0;
+      z-index: 100;
+    }
+
+    #repl-output {
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 0;
+      font-family: 'Menlo', 'Consolas', monospace;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .repl-line {
+      padding: 0.25rem 1rem;
+      border-bottom: 1px solid #f0efed;
+    }
+
+    .repl-line.query {
+      color: var(--fg-muted);
+    }
+
+    .repl-line.query::before {
+      content: '?- ';
+      color: var(--accent);
+    }
+
+    .repl-line.result {
+      color: var(--accent);
+    }
+
+    .repl-line.result-false {
+      color: var(--absent);
+    }
+
+    .repl-line.error {
+      color: var(--absent);
+    }
+
+    .repl-line.info {
+      color: var(--fg-muted);
+      font-style: italic;
+    }
+
+    #repl-input-row {
+      display: flex;
+      align-items: center;
+      border-top: 1px solid var(--border);
+      padding: 0 1rem;
+    }
+
+    #repl-input-row::before {
+      content: '?- ';
+      font-family: 'Menlo', 'Consolas', monospace;
+      font-size: 0.82rem;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    #repl-input {
+      flex: 1;
+      font-family: 'Menlo', 'Consolas', monospace;
+      font-size: 0.82rem;
+      border: none;
+      outline: none;
+      padding: 0.7rem 0.25rem;
+      background: transparent;
+      color: var(--fg);
+    }
+
+    #repl-input::placeholder {
+      color: var(--border);
+    }
 
     footer {
       margin-top: auto;
@@ -168,6 +249,13 @@
   </div>
 
   <footer>&copy; 2026 Ben Askins</footer>
+
+  <div id="repl">
+    <div id="repl-output"></div>
+    <div id="repl-input-row">
+      <input type="text" id="repl-input" placeholder="translate(emptiness, sanskrit, X)." autocomplete="off" spellcheck="false">
+    </div>
+  </div>
 
   <!-- Adapted from lamina/facts/dharma.pl for Tau Prolog compatibility:
        - Removed :- discontiguous directives (unsupported)
@@ -765,6 +853,93 @@ sentient_being(X) :-
       }).join('');
     }
 
+    // --- REPL ---
+    var replOutput = document.getElementById('repl-output');
+    var replInput = document.getElementById('repl-input');
+    var queryHistory = [];
+    var historyIdx = -1;
+
+    function addLine(text, cls) {
+      var el = document.createElement('div');
+      el.className = 'repl-line ' + cls;
+      el.textContent = text;
+      replOutput.appendChild(el);
+      replOutput.scrollTop = replOutput.scrollHeight;
+    }
+
+    function runQuery(queryText) {
+      queryText = queryText.trim();
+      if (!queryText) return;
+
+      // Add period if missing
+      if (queryText[queryText.length - 1] !== '.') queryText += '.';
+
+      addLine(queryText, 'query');
+      queryHistory.unshift(queryText);
+      historyIdx = -1;
+
+      session.query(queryText, {
+        success: function () {
+          getAllAnswers();
+        },
+        error: function (err) {
+          addLine(err.toString(), 'error');
+        }
+      });
+    }
+
+    function getAllAnswers() {
+      var count = 0;
+      function nextAnswer() {
+        session.answer({
+          success: function (answer) {
+            count++;
+            var text = pl.format_answer(answer);
+            // format_answer returns "true" for ground queries
+            if (text === 'true ;') text = 'true';
+            addLine(text.replace(/ ;$/, ''), 'result');
+            // Get next answer
+            nextAnswer();
+          },
+          fail: function () {
+            if (count === 0) {
+              addLine('false', 'result-false');
+            }
+          },
+          error: function (err) {
+            addLine(err.toString(), 'error');
+          },
+          limit: function () {
+            addLine('(limit reached)', 'info');
+          }
+        });
+      }
+      nextAnswer();
+    }
+
+    replInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        runQuery(replInput.value);
+        replInput.value = '';
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (historyIdx < queryHistory.length - 1) {
+          historyIdx++;
+          replInput.value = queryHistory[historyIdx];
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIdx > 0) {
+          historyIdx--;
+          replInput.value = queryHistory[historyIdx];
+        } else {
+          historyIdx = -1;
+          replInput.value = '';
+        }
+      }
+    });
+
+    // --- Init ---
     session.consult(program, {
       success: function () {
         session.query('sentient_being(human).', {
