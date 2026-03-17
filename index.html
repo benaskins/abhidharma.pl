@@ -65,10 +65,79 @@
     #status.ready { color: var(--accent); }
     #status.error { color: var(--absent); }
 
-    /* --- Module browser (step 2) --- */
+    /* --- Module browser --- */
 
     #modules {
       margin-top: 2rem;
+    }
+
+    .module {
+      border-top: 1px solid var(--border);
+    }
+
+    .module:last-child {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .module summary {
+      padding: 1rem 0;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .module summary::-webkit-details-marker { display: none; }
+
+    .module summary::after {
+      content: '+';
+      font-size: 1.1rem;
+      color: var(--fg-muted);
+      transition: transform 0.2s;
+    }
+
+    .module[open] summary::after {
+      content: '\2212';
+    }
+
+    .module-title {
+      font-size: 1.1rem;
+      font-weight: 400;
+    }
+
+    .module-sanskrit {
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      font-style: italic;
+      margin-left: 0.5rem;
+    }
+
+    .module-body {
+      padding: 0 0 1.25rem;
+    }
+
+    .module-desc {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--fg-muted);
+      margin-bottom: 1rem;
+    }
+
+    .module-predicates {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .predicate {
+      font-family: 'Menlo', 'Consolas', monospace;
+      font-size: 0.78rem;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      color: var(--fg);
     }
 
     /* --- REPL (step 3) --- */
@@ -618,12 +687,86 @@ sentient_being(X) :-
   <script>
     var session = pl.create();
     var statusEl = document.getElementById('status');
-
     var program = document.getElementById('dharma').textContent;
+
+    var modules = [
+      {
+        title: 'Multilingual Terminology',
+        sanskrit: 'abhidh\u0101na',
+        desc: 'English, Sanskrit, and Tibetan terms for core Buddhist philosophical concepts. 28 terms with lookup helpers and translation between languages.',
+        predicates: ['term/3', 'translate/3', 'from_sanskrit/2', 'from_tibetan/2', 'english/1', 'sanskrit/1', 'tibetan/1']
+      },
+      {
+        title: 'Logic',
+        sanskrit: 'trair\u016bpya',
+        desc: 'Dharmak\u012Brti\u2019s three criteria for valid inference: the reason must be a property of the subject (paksadharmata), positively concomitant (anvaya), and negatively concomitant (vyatireka). Includes three types of fallacious reason.',
+        predicates: ['valid_reason/3', 'paksadharmata/2', 'anvaya/2', 'vyatireka/2', 'fallacy/4', 'contradicts/2']
+      },
+      {
+        title: 'Valid Cognition',
+        sanskrit: 'pram\u0101\u1E47a',
+        desc: 'Two types of valid knowing: direct perception (non-conceptual, apprehends particulars) and inference (conceptual, operates through reasons, apprehends universals). Four types of non-valid cognition.',
+        predicates: ['pramana_type/1', 'apprehends/2', 'pratyaksa_subtype/1', 'non_pramana/1', 'has_pramana/2']
+      },
+      {
+        title: 'Sentience & Capacities',
+        sanskrit: 'citta',
+        desc: 'Five capacities that constitute mind: luminosity, cognising, intentionality, momentariness, and causal continuity. The first three define sentience; all five define a mental stream.',
+        predicates: ['capacity/1', 'sentient/1', 'has_mental_stream/1', 'has_capacity/2']
+      },
+      {
+        title: 'Mental Factors',
+        sanskrit: 'caitta',
+        desc: '51 mental factors in six groups: 5 omnipresent, 5 object-ascertaining, 11 virtuous, 6 root afflictions, 20 secondary afflictions, 4 changeable. Includes co-occurrence rules and antidote pairs.',
+        predicates: ['mental_factor/2', 'mental_factor_group/1', 'accompanies_all/1', 'direct_antidote/2', 'inconsistent/2', 'valid_mind_moment/1']
+      },
+      {
+        title: 'Five Aggregates',
+        sanskrit: 'skandha',
+        desc: 'Form, feeling, discrimination, compositional factors, consciousness. Includes sense faculties, sense objects, the six consciousness types, and how contact and feeling arise from the sense triad.',
+        predicates: ['aggregate/1', 'member_of/2', 'sense_faculty/1', 'sense_object/1', 'consciousness_type/1', 'consciousness_arises/3', 'sense_contact/3', 'feeling_arises/3']
+      },
+      {
+        title: 'Person & Dependent Origination',
+        sanskrit: 'prat\u012Btyasamutp\u0101da',
+        desc: 'The person is imputed upon the aggregates, unfindable under ultimate analysis, yet conventionally existent. Everything depends on causes, parts, and imputation. Emptiness and dependent origination are coextensive.',
+        predicates: ['imputed_upon/2', 'findable_under_analysis/1', 'conventionally_exists/1', 'depends_on/2', 'empty/1', 'dependently_originated/1']
+      },
+      {
+        title: 'Prasangika Method',
+        sanskrit: 'prasa\u1E45ga',
+        desc: 'Argument by reductio (prasanga), not autonomous syllogism. The opponent\u2019s own thesis and accepted premises are shown to yield a contradiction they must reject.',
+        predicates: ['valid_method/1', 'prasanga_refutes/1', 'entails/3', 'opponent_rejects/1']
+      },
+      {
+        title: 'Sentient Beings',
+        sanskrit: 'sattva',
+        desc: 'Full diagnostic combining all five aggregates, the three sentience capacities, and the two mental stream capacities. The complete test for whether something is a sentient being.',
+        predicates: ['sentient_being/1', 'has_all_aggregates/1', 'has_aggregate/2']
+      }
+    ];
+
+    function renderModules() {
+      var container = document.getElementById('modules');
+      container.innerHTML = modules.map(function (m, i) {
+        var preds = m.predicates.map(function (p) {
+          return '<span class="predicate">' + p + '</span>';
+        }).join('');
+        return '<details class="module">' +
+          '<summary>' +
+            '<span><span class="module-title">' + m.title + '</span>' +
+            '<span class="module-sanskrit">' + m.sanskrit + '</span></span>' +
+          '</summary>' +
+          '<div class="module-body">' +
+            '<p class="module-desc">' + m.desc + '</p>' +
+            '<div class="module-predicates">' + preds + '</div>' +
+          '</div>' +
+        '</details>';
+      }).join('');
+    }
 
     session.consult(program, {
       success: function () {
-        // Verify with a test query
         session.query('sentient_being(human).', {
           success: function () {
             session.answer({
@@ -631,6 +774,7 @@ sentient_being(X) :-
                 statusEl.textContent = '9 modules loaded \u00b7 knowledge base ready';
                 statusEl.className = 'ready';
                 statusEl.classList.add('fade-in');
+                renderModules();
               },
               fail: function () {
                 statusEl.textContent = 'Knowledge base loaded but verification query failed';
