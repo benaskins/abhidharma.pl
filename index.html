@@ -286,6 +286,31 @@
       color: var(--border);
     }
 
+    /* --- Webring --- */
+
+    .webring {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 4px 0 calc(4px + env(safe-area-inset-bottom, 0px));
+      font-family: 'Menlo', 'Consolas', monospace;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      background: var(--code-bg);
+      border-top: 1px solid #eeedea;
+    }
+
+    .webring-name { color: var(--fg-muted); }
+
+    .webring a {
+      color: var(--fg-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .webring a:hover { color: var(--fg); }
+
     footer {
       margin-top: auto;
       padding-top: 4rem;
@@ -318,6 +343,11 @@
     <div id="repl-input-row">
       <input type="text" id="repl-input" placeholder="translate(emptiness, sanskrit, X)." autocomplete="off" spellcheck="false">
     </div>
+    <nav class="webring">
+      <a class="webring-prev" href="#">&larr;</a>
+      <span class="webring-name">abhidharma</span>
+      <a class="webring-next" href="#">&rarr;</a>
+    </nav>
   </div>
 
   <!-- Adapted from lamina/facts/dharma.pl for Tau Prolog compatibility:
@@ -1091,6 +1121,28 @@ sentient_being(X) :-
         statusEl.className = 'error';
       }
     });
+
+    // --- Webring ---
+    (function () {
+      var ring = [
+        { name: 'benjaminaskins', url: 'https://benjaminaskins.com' },
+        { name: 'genlevel', url: 'https://genlevel.com' },
+        { name: 'generativeplane', url: 'https://generativeplane.com' },
+        { name: 'isitconscious', url: 'https://isitconscious.xyz' },
+        { name: 'abhidharma', url: 'https://abhidharma.pl' }
+      ];
+      var host = location.hostname.replace('www.', '');
+      var idx = ring.findIndex(function (s) { return host.indexOf(s.name) !== -1; });
+      if (idx === -1) idx = ring.length - 1; // default to self
+      var prev = ring[(idx - 1 + ring.length) % ring.length];
+      var next = ring[(idx + 1) % ring.length];
+      var nav = document.querySelector('.webring');
+      nav.querySelector('.webring-prev').href = prev.url;
+      nav.querySelector('.webring-prev').textContent = '\u2190 ' + prev.name;
+      nav.querySelector('.webring-next').href = next.url;
+      nav.querySelector('.webring-next').textContent = next.name + ' \u2192';
+      nav.querySelector('.webring-name').textContent = ring[idx].name;
+    })();
   </script>
 </body>
 </html>
