@@ -140,6 +140,69 @@
       color: var(--fg);
     }
 
+    .module-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+    }
+
+    .chip {
+      font-family: 'Menlo', 'Consolas', monospace;
+      font-size: 0.78rem;
+      background: var(--accent-light);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      color: var(--accent);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .chip:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .module-source-toggle {
+      font-size: 0.82rem;
+      color: var(--fg-muted);
+      cursor: pointer;
+      margin-top: 0.75rem;
+      display: inline-block;
+      border: none;
+      background: none;
+      font-family: inherit;
+      padding: 0;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 2px;
+    }
+
+    .module-source-toggle:hover {
+      color: var(--fg);
+    }
+
+    .module-source {
+      display: none;
+      margin-top: 0.75rem;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      font-family: 'Menlo', 'Consolas', monospace;
+      font-size: 0.75rem;
+      line-height: 1.5;
+      white-space: pre;
+      overflow-x: auto;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .module-source.visible {
+      display: block;
+    }
+
     /* --- REPL --- */
 
     #repl {
@@ -782,57 +845,96 @@ sentient_being(X) :-
         title: 'Multilingual Terminology',
         sanskrit: 'abhidh\u0101na',
         desc: 'English, Sanskrit, and Tibetan terms for core Buddhist philosophical concepts. 28 terms with lookup helpers and translation between languages.',
-        predicates: ['term/3', 'translate/3', 'from_sanskrit/2', 'from_tibetan/2', 'english/1', 'sanskrit/1', 'tibetan/1']
+        predicates: ['term/3', 'translate/3', 'from_sanskrit/2', 'from_tibetan/2', 'english/1', 'sanskrit/1', 'tibetan/1'],
+        queries: ['translate(emptiness, sanskrit, X)', 'from_tibetan(sems, X)', 'term(X, pramana, Y)'],
+        sourceMarker: 'MODULE 1'
       },
       {
         title: 'Logic',
         sanskrit: 'trair\u016bpya',
         desc: 'Dharmak\u012Brti\u2019s three criteria for valid inference: the reason must be a property of the subject (paksadharmata), positively concomitant (anvaya), and negatively concomitant (vyatireka). Includes three types of fallacious reason.',
-        predicates: ['valid_reason/3', 'paksadharmata/2', 'anvaya/2', 'vyatireka/2', 'fallacy/4', 'contradicts/2']
+        predicates: ['valid_reason/3', 'paksadharmata/2', 'anvaya/2', 'vyatireka/2', 'fallacy/4', 'contradicts/2'],
+        queries: ['contradicts(permanent, X)', 'contradicts(X, Y)'],
+        sourceMarker: 'MODULE 2'
       },
       {
         title: 'Valid Cognition',
         sanskrit: 'pram\u0101\u1E47a',
         desc: 'Two types of valid knowing: direct perception (non-conceptual, apprehends particulars) and inference (conceptual, operates through reasons, apprehends universals). Four types of non-valid cognition.',
-        predicates: ['pramana_type/1', 'apprehends/2', 'pratyaksa_subtype/1', 'non_pramana/1', 'has_pramana/2']
+        predicates: ['pramana_type/1', 'apprehends/2', 'pratyaksa_subtype/1', 'non_pramana/1', 'has_pramana/2'],
+        queries: ['pramana_type(X)', 'apprehends(direct_perception, X)', 'non_pramana(X)', 'has_pramana(human, X)'],
+        sourceMarker: 'MODULE 3'
       },
       {
         title: 'Sentience & Capacities',
         sanskrit: 'citta',
         desc: 'Five capacities that constitute mind: luminosity, cognising, intentionality, momentariness, and causal continuity. The first three define sentience; all five define a mental stream.',
-        predicates: ['capacity/1', 'sentient/1', 'has_mental_stream/1', 'has_capacity/2']
+        predicates: ['capacity/1', 'sentient/1', 'has_mental_stream/1', 'has_capacity/2'],
+        queries: ['capacity(X)', 'sentient(human)', 'has_mental_stream(human)', 'has_capacity(animal, X)'],
+        sourceMarker: 'MODULE 4'
       },
       {
         title: 'Mental Factors',
         sanskrit: 'caitta',
         desc: '51 mental factors in six groups: 5 omnipresent, 5 object-ascertaining, 11 virtuous, 6 root afflictions, 20 secondary afflictions, 4 changeable. Includes co-occurrence rules and antidote pairs.',
-        predicates: ['mental_factor/2', 'mental_factor_group/1', 'accompanies_all/1', 'direct_antidote/2', 'inconsistent/2', 'valid_mind_moment/1']
+        predicates: ['mental_factor/2', 'mental_factor_group/1', 'accompanies_all/1', 'direct_antidote/2', 'inconsistent/2', 'valid_mind_moment/1'],
+        queries: ['accompanies_all(X)', 'mental_factor(X, root_affliction)', 'direct_antidote(X, anger)', 'mental_factor(X, virtuous)'],
+        sourceMarker: 'MODULE 5'
       },
       {
         title: 'Five Aggregates',
         sanskrit: 'skandha',
         desc: 'Form, feeling, discrimination, compositional factors, consciousness. Includes sense faculties, sense objects, the six consciousness types, and how contact and feeling arise from the sense triad.',
-        predicates: ['aggregate/1', 'member_of/2', 'sense_faculty/1', 'sense_object/1', 'consciousness_type/1', 'consciousness_arises/3', 'sense_contact/3', 'feeling_arises/3']
+        predicates: ['aggregate/1', 'member_of/2', 'sense_faculty/1', 'sense_object/1', 'consciousness_type/1', 'consciousness_arises/3', 'sense_contact/3', 'feeling_arises/3'],
+        queries: ['aggregate(X)', 'member_of(X, consciousness)', 'sense_contact(eye, visible_form, C)', 'consciousness_arises(X, ear, sound)'],
+        sourceMarker: 'MODULE 6'
       },
       {
         title: 'Person & Dependent Origination',
         sanskrit: 'prat\u012Btyasamutp\u0101da',
         desc: 'The person is imputed upon the aggregates, unfindable under ultimate analysis, yet conventionally existent. Everything depends on causes, parts, and imputation. Emptiness and dependent origination are coextensive.',
-        predicates: ['imputed_upon/2', 'findable_under_analysis/1', 'conventionally_exists/1', 'depends_on/2', 'empty/1', 'dependently_originated/1']
+        predicates: ['imputed_upon/2', 'findable_under_analysis/1', 'conventionally_exists/1', 'depends_on/2', 'empty/1', 'dependently_originated/1'],
+        queries: ['findable_under_analysis(person)', 'conventionally_exists(person)', 'depends_on(person, X)', 'empty(person)'],
+        sourceMarker: 'MODULE 7'
       },
       {
         title: 'Prasangika Method',
         sanskrit: 'prasa\u1E45ga',
         desc: 'Argument by reductio (prasanga), not autonomous syllogism. The opponent\u2019s own thesis and accepted premises are shown to yield a contradiction they must reject.',
-        predicates: ['valid_method/1', 'prasanga_refutes/1', 'entails/3', 'opponent_rejects/1']
+        predicates: ['valid_method/1', 'prasanga_refutes/1', 'entails/3', 'opponent_rejects/1'],
+        queries: ['valid_method(X)', 'invalid_method(X)'],
+        sourceMarker: 'MODULE 8'
       },
       {
         title: 'Sentient Beings',
         sanskrit: 'sattva',
         desc: 'Full diagnostic combining all five aggregates, the three sentience capacities, and the two mental stream capacities. The complete test for whether something is a sentient being.',
-        predicates: ['sentient_being/1', 'has_all_aggregates/1', 'has_aggregate/2']
+        predicates: ['sentient_being/1', 'has_all_aggregates/1', 'has_aggregate/2'],
+        queries: ['sentient_being(X)', 'sentient_being(human)', 'has_aggregate(human, X)'],
+        sourceMarker: 'MODULE 9'
       }
     ];
+
+    function getModuleSource(marker, nextMarker) {
+      var lines = program.split('\n');
+      var start = -1, end = lines.length;
+      for (var i = 0; i < lines.length; i++) {
+        if (lines[i].indexOf(marker) !== -1 && start === -1) {
+          // Find the %% === line before the marker
+          start = i > 0 ? i - 1 : i;
+        }
+        if (nextMarker && lines[i].indexOf(nextMarker) !== -1 && start !== -1) {
+          end = i - 2; // Stop before next module's separator
+          break;
+        }
+      }
+      if (start === -1) return '';
+      return lines.slice(start, end).join('\n').trim();
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
 
     function renderModules() {
       var container = document.getElementById('modules');
@@ -840,6 +942,14 @@ sentient_being(X) :-
         var preds = m.predicates.map(function (p) {
           return '<span class="predicate">' + p + '</span>';
         }).join('');
+
+        var chips = m.queries.map(function (q) {
+          return '<span class="chip" onclick="runQuery(\'' + q.replace(/'/g, "\\'") + '\')">' + q + '</span>';
+        }).join('');
+
+        var nextMarker = i < modules.length - 1 ? modules[i + 1].sourceMarker : null;
+        var source = getModuleSource(m.sourceMarker, nextMarker);
+
         return '<details class="module">' +
           '<summary>' +
             '<span><span class="module-title">' + m.title + '</span>' +
@@ -848,9 +958,18 @@ sentient_being(X) :-
           '<div class="module-body">' +
             '<p class="module-desc">' + m.desc + '</p>' +
             '<div class="module-predicates">' + preds + '</div>' +
+            '<div class="module-chips">' + chips + '</div>' +
+            '<button class="module-source-toggle" onclick="toggleSource(this)">view source</button>' +
+            '<div class="module-source">' + escHtml(source) + '</div>' +
           '</div>' +
         '</details>';
       }).join('');
+    }
+
+    function toggleSource(btn) {
+      var src = btn.nextElementSibling;
+      var visible = src.classList.toggle('visible');
+      btn.textContent = visible ? 'hide source' : 'view source';
     }
 
     // --- REPL ---
